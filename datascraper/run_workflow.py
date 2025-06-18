@@ -77,6 +77,8 @@ def main():
     
     scripts = {
         "Data scraping": "isu_scraper.py",
+        "Adding SkaterIDs": "skaterid_scraper.py",
+        "Adding seasonal bests": "seasonalbest_scraper.py",
         "Adding weather data": "add_weather_to_conditions_with_location.py",
         "Calculating EstimatedTFM": "calculate_estimated_tfm.py",
         "Loading data into SQLite database": "load_to_database.py"

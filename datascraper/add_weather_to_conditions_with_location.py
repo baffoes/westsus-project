@@ -16,7 +16,8 @@ from datetime import datetime
 from collections import defaultdict
 
 # --- Configuration ---
-INPUT_FILE = 'isu_conditions.csv'
+INPUT_FILE = 'datascraper/data/isu_conditions.csv'
+OUTPUT_FILE = 'datascraper/data/isu_conditions.csv'
 WEATHER_COLUMNS = ['TempOutdoors', 'AirpressureSurface', 'AirpressureSealevel']
 API_TIMEOUT = 30
 # Delay between each YEARLY request to be respectful to the API.
@@ -245,9 +246,9 @@ def main():
     
     updated_data, rows_updated = update_data_with_weather(data, all_weather_data)
     
-    write_updated_data(INPUT_FILE, updated_data, original_fieldnames)
+    write_updated_data(OUTPUT_FILE, updated_data, original_fieldnames)
     
-    logging.info(f"Successfully enriched and saved '{INPUT_FILE}': updated {rows_updated:,} of {len(data):,} rows.")
+    logging.info(f"Successfully enriched and saved '{OUTPUT_FILE}': updated {rows_updated:,} of {len(data):,} rows.")
 
 if __name__ == "__main__":
     main()

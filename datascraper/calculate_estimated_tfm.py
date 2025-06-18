@@ -13,7 +13,7 @@ import os
 from collections import defaultdict
 
 # --- Configuration ---
-INPUT_FILE = 'isu_results.csv'
+INPUT_FILE = 'datascraper/data/isu_results.csv'
 OUTPUT_COLUMNS = ['EstimatedTFM', 'EstimatedTFMBuffer']
 TFM_BUFFER = 60  # Seconds to add for the TFM Buffer
 
