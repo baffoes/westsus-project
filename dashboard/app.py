@@ -5,6 +5,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
+from style import *
 
 # Load data
 df_results = pd.read_csv("data/ResultsV2.csv", delimiter=";")
@@ -46,180 +47,161 @@ df_gekoppeld = df_gekoppeld[df_gekoppeld['Time_x'] < 1.1 * df_gekoppeld['Seasona
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 app.title = "Wetsus Dashboard - Performance Analysis"
 
-# Custom CSS styling
-custom_style = {
-    'backgroundColor': '#0a1428',
-    'color': '#ffffff',
-    'fontFamily': "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-}
-
-card_style = {
-    'backgroundColor': '#1e3a5f',
-    'border': '1px solid #2c5aa0',
-    'borderRadius': '10px',
-    'padding': '20px',
-    'margin': '10px 0',
-    'boxShadow': '0 4px 6px rgba(0, 0, 0, 0.3)'
-}
-
-# --- Layout ---
+# --- Layout ---t 
 app.layout = dbc.Container([
+
     # Header
     dbc.Row([
         dbc.Col([
             html.Div([
                 html.H1("Speed Skating Performance Analysis", 
-                       className="text-center mb-2",
-                       style={'color': '#87ceeb', 'fontWeight': 'bold', 'textShadow': '2px 2px 4px rgba(0,0,0,0.5)'}),
+                        className="text-center mb-2",
+                        style=title_style),
                 html.P("Advanced Analytics Dashboard based on ISU Speed Skating Data",
-                      className="text-center text-muted mb-4",
-                      style={'color': '#b0c4de', 'fontSize': '18px'})
-            ], style={'background': 'linear-gradient(135deg, #1e3a5f 0%, #0a1428 100%)', 
-                     'padding': '30px', 'borderRadius': '15px', 'marginBottom': '20px'})
+                       className="text-center text-muted mb-4",
+                       style=subtitle_style)
+            ], style=header_div_style)
         ], width=12)
     ]),
-    
+
     # Controls Section
     dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H5("🎛️ Dashboard Controls", className="card-title mb-3", 
-                           style={'color': '#87ceeb', 'fontWeight': 'bold'}),
+                    html.H5("🎛️ Dashboard Controls", className="card-title mb-3", style=title_style),
                     dbc.Row([
                         dbc.Col([
-                            html.Label("Gender:", style={'color': '#ffffff', 'fontWeight': 'bold'}),
+                            html.Label("Gender:", style=label_style),
                             dcc.Dropdown(
                                 id='gender-dropdown',
                                 options=[{'label': g, 'value': g} for g in sorted(df_gekoppeld['Gender'].unique())],
                                 value='Men',
                                 clearable=False,
-                                style={'backgroundColor': '#0a1428', 'color': '#000000'}
-                            ),
+                                style=dropdown_style
+                            )
                         ], width=2),
                         dbc.Col([
-                            html.Label("Distance (m):", style={'color': '#ffffff', 'fontWeight': 'bold'}),
+                            html.Label("Distance (m):", style=label_style),
                             dcc.Dropdown(
                                 id='distance-dropdown',
                                 options=[{'label': d, 'value': d} for d in sorted(df_gekoppeld['Distance'].unique())],
                                 value=500,
                                 clearable=False,
-                                style={'backgroundColor': '#0a1428', 'color': '#000000'}
-                            ),
+                                style=dropdown_style
+                            )
                         ], width=2),
                         dbc.Col([
-                            html.Label("Country:", style={'color': '#ffffff', 'fontWeight': 'bold'}),
+                            html.Label("Country:", style=label_style),
                             dcc.Dropdown(
                                 id='country-dropdown',
                                 options=[{'label': c, 'value': c} for c in sorted(df_gekoppeld['Country_x'].unique())],
                                 multi=True,
                                 placeholder='All countries',
-                                style={'backgroundColor': '#0a1428', 'color': '#000000'}
-                            ),
+                                style=dropdown_style
+                            )
                         ], width=2),
                         dbc.Col([
-                            html.Label("Stadium:", style={'color': '#ffffff', 'fontWeight': 'bold'}),
+                            html.Label("Stadium:", style=label_style),
                             dcc.Dropdown(
                                 id='stadium-dropdown',
                                 options=[{'label': s, 'value': s} for s in sorted(df_gekoppeld['Stadium'].unique())],
                                 multi=True,
                                 placeholder='All stadiums',
-                                style={'backgroundColor': '#0a1428', 'color': '#000000'}
-                            ),
+                                style=dropdown_style
+                            )
                         ], width=2),
                         dbc.Col([
-                            html.Label("Athlete:", style={'color': '#ffffff', 'fontWeight': 'bold'}),
+                            html.Label("Athlete:", style=label_style),
                             dcc.Dropdown(
                                 id='athlete-dropdown',
-                                options=[],  # options will be set by callback
+                                options=[],
                                 multi=True,
                                 placeholder='All athletes',
-                                style={'backgroundColor': '#0a1428', 'color': '#000000'}
-                            ),
+                                style=dropdown_style
+                            )
                         ], width=2),
                         dbc.Col([
-                            html.Label("Year Range:", style={'color': '#ffffff', 'fontWeight': 'bold'}),
+                            html.Label("Year Range:", style=label_style),
                             dcc.RangeSlider(
                                 id='year-slider',
                                 min=df_gekoppeld['Year'].min(),
                                 max=df_gekoppeld['Year'].max(),
                                 step=1,
-                                marks={str(year): {'label': str(year), 'style': {'color': '#87ceeb'}} for year in range(df_gekoppeld['Year'].min(), df_gekoppeld['Year'].max()+1, 5)},
+                                marks={str(year): {'label': str(year), 'style': slider_marks_style}
+                                       for year in range(df_gekoppeld['Year'].min(), df_gekoppeld['Year'].max()+1, 5)},
                                 value=[df_gekoppeld['Year'].min(), df_gekoppeld['Year'].max()],
                                 tooltip={"placement": "bottom", "always_visible": True}
-                            ),
-                        ], width=2),
+                            )
+                        ], width=2)
                     ])
                 ])
-            ], style={'backgroundColor': '#1e3a5f', 'border': '1px solid #2c5aa0', 'marginBottom': '20px'})
+            ], style=card_style)
         ], width=12)
     ]),
-    
+
     # Main Chart and Stats
     dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
                     dcc.Graph(id='temp-time-scatter'),
-                    html.Div(id='stats-output', className="mt-3", 
-                            style={'backgroundColor': '#0f2142', 'padding': '15px', 'borderRadius': '8px', 'border': '1px solid #2c5aa0'}),
+                    html.Div(id='stats-output', className="mt-3", style=stats_output_style),
                     html.Div([
-                        html.Button("📥 Download CSV", id="btn_csv", 
-                                  className="mt-3 btn",
-                                  style={'backgroundColor': '#2c5aa0', 'color': 'white', 'border': 'none', 'padding': '10px 20px', 'borderRadius': '5px', 'fontWeight': 'bold'})
+                        html.Button("📥 Download CSV", id="btn_csv", className="mt-3 btn", style=download_button_style)
                     ], className="text-center"),
-                    dcc.Download(id="download-dataframe-csv"),
+                    dcc.Download(id="download-dataframe-csv")
                 ])
-            ], style={'backgroundColor': '#1e3a5f', 'border': '1px solid #2c5aa0'})
+            ], style=card_style)
         ], width=12)
     ], className="mb-4"),
-    
+
     # Secondary Charts Row 1
     dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    dcc.Graph(id='time-trend'),
+                    dcc.Graph(id='time-trend')
                 ])
-            ], style={'backgroundColor': '#1e3a5f', 'border': '1px solid #2c5aa0'})
+            ], style=card_style)
         ], width=6),
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    dcc.Graph(id='temp-distribution'),
+                    dcc.Graph(id='temp-distribution')
                 ])
-            ], style={'backgroundColor': '#1e3a5f', 'border': '1px solid #2c5aa0'})
-        ], width=6),
+            ], style=card_style)
+        ], width=6)
     ], className="mb-4"),
-    
+
     # Secondary Charts Row 2
     dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    dcc.Graph(id='performance-by-stadium'),
+                    dcc.Graph(id='performance-by-stadium')
                 ])
-            ], style={'backgroundColor': '#1e3a5f', 'border': '1px solid #2c5aa0'})
+            ], style=card_style)
         ], width=6),
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    dcc.Graph(id='avg-ice-temp-by-stadium'),
+                    dcc.Graph(id='avg-ice-temp-by-stadium')
                 ])
-            ], style={'backgroundColor': '#1e3a5f', 'border': '1px solid #2c5aa0'})
-        ], width=6),
+            ], style=card_style)
+        ], width=6)
     ]),
-    
+
     # Footer
     dbc.Row([
         dbc.Col([
             html.Hr(style={'borderColor': '#2c5aa0', 'margin': '30px 0'}),
             html.P("🏆 Wetsus Performance Analytics Dashboard | Optimizing Athletic Performance Through Data Science",
-                  className="text-center text-muted",
-                  style={'color': '#87ceeb', 'fontSize': '14px', 'fontStyle': 'italic'})
+                   className="text-center text-muted",
+                   style=footer_text_style)
         ], width=12)
     ])
-], fluid=True, style=custom_style)
+], fluid=True, style=main_container_style)
 
 # --- Dependent Athlete Dropdown Callback ---
 @app.callback(
@@ -274,18 +256,7 @@ def update_athlete_options(selected_gender, selected_distance, selected_years, s
 def update_all_figures(selected_gender, selected_distance, selected_years, selected_countries, selected_stadiums, selected_athletes, n_clicks):
     ctx = dash.callback_context
     
-    # Dark theme template for all plots
-    dark_template = {
-        'layout': {
-            'paper_bgcolor': '#1e3a5f',
-            'plot_bgcolor': '#0f2142',
-            'font': {'color': '#ffffff'},
-            'colorway': ['#87ceeb', '#4682b4', '#5f9ea0', '#6495ed', '#00bfff', '#1e90ff', '#4169e1', '#0000cd'],
-            'xaxis': {'gridcolor': '#2c5aa0', 'zerolinecolor': '#2c5aa0'},
-            'yaxis': {'gridcolor': '#2c5aa0', 'zerolinecolor': '#2c5aa0'}
-        }
-    }
-    
+  
     # --- Filter data ---
     filtered_df = df_gekoppeld[
         (df_gekoppeld['Gender'] == selected_gender) &
