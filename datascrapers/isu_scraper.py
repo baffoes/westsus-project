@@ -186,13 +186,13 @@ def process_single_event(event_id):
                     'Latitude': latitude,
                     'Longitude': longitude,
                     'Date': date,
-                    'Event': race_name.replace(" ", "_"),
-                    'MatchType': event_name.replace(" ", "_"),
-                    'EventCountry': fix_encoding(track_data.get("track", {}).get("country", "")),
+                    'Event': event_name.replace(" ", "_"),
+                    'Race': race_name.replace(" ", "_"),
+                    'Country': fix_encoding(track_data.get("track", {}).get("country", "")),
                     'Distance': distance,
                     'Occasion': fix_encoding(condition.get('occasion', '')),
                     'Time': time_only,
-                    'AirTemperature': airTemp,
+                    'TempIndoors': airTemp,
                     'IceTemperature': iceTemp,
                     'Humidity': humidity,
                 })
@@ -229,8 +229,8 @@ def process_single_event(event_id):
                 event_results.append([
                     fix_encoding(stadium).replace(" ", "_"),
                     date,
-                    race_name.replace(" ", "_"),
                     event_name.replace(" ", "_"),
+                    race_name.replace(" ", "_"),
                     r.get("rank", ""),
                     competitor.get("number", ""),
                     full_name,
@@ -264,9 +264,9 @@ def main():
     # Ensure UTF-8 encoding when writing CSV files
     with open("isu_results.csv", "w", newline='', encoding="utf-8") as result_file:
         result_writer = csv.writer(result_file, delimiter=';')
-        result_writer.writerow(["Stadium","Date","Event","Race","Rnk", "Nr", "Name", "Country", "Pair", "Lane", "Time", "Behind","Gender"])
+        result_writer.writerow(["Stadium","Date","Event","Race","Rank", "Nr", "Name", "Country", "Pair", "Lane", "Time", "Behind","Gender"])
 
-    condition_fieldnames = ['Stadium', 'Location', 'Latitude', 'Longitude', 'Date','Event','MatchType','EventCountry','Distance','Occasion', 'Time', 'AirTemperature', 'IceTemperature', 'Humidity']
+    condition_fieldnames = ['Stadium', 'Location', 'Latitude', 'Longitude', 'Date','Event','Race','Country','Distance','Occasion', 'Time', 'TempIndoors', 'IceTemperature', 'Humidity', 'AirpressureSurface', 'AirpressureSealevel']
     with open("isu_conditions.csv", mode='w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=condition_fieldnames, delimiter=';')
         writer.writeheader()
