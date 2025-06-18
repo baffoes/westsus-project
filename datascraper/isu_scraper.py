@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
 import os
 
-# Regex die veelvoorkomende mojibake detecteert (zoals “Ã¶”, “Ã¤”, etc.)
+# Regex die veelvoorkomende mojibake detecteert (zoals "Ã¶", "Ã¤", etc.)
 MOJIBAKE_PATTERN = re.compile(r"[Ã][^\s]{1,2}")
 
 def fix_encoding(text):
@@ -90,6 +90,9 @@ def process_single_event(event_id):
         print(f"[WARNING] No track data found for event {event_id}")
         return [], []
 
+    latitude = track_data.get("track", {}).get("latitude")
+    longitude = track_data.get("track", {}).get("longitude")
+    city = fix_encoding(track_data.get("track", {}).get("city", ""))
     stadium = fix_encoding(track_data.get("track", {}).get("name", ""))
     event_name = fix_encoding(track_data.get("name", ""))
 
@@ -180,14 +183,17 @@ def process_single_event(event_id):
 
                 event_conditions.append({
                     'Stadium': fix_encoding(stadium).replace(" ", "_"),
+                    'Location': city.replace(" ", "_") if city else '',
+                    'Latitude': latitude,
+                    'Longitude': longitude,
                     'Date': date,
-                    'Event': race_name.replace(" ", "_"),
-                    'MatchType': event_name.replace(" ", "_"),
-                    'EventCountry': fix_encoding(track_data.get("track", {}).get("country", "")),
+                    'Event': event_name.replace(" ", "_"),
+                    'Race': race_name.replace(" ", "_"),
+                    'Country': fix_encoding(track_data.get("track", {}).get("country", "")),
                     'Distance': distance,
                     'Occasion': fix_encoding(condition.get('occasion', '')),
                     'Time': time_only,
-                    'AirTemperature': airTemp,
+                    'TempIndoors': airTemp,
                     'IceTemperature': iceTemp,
                     'Humidity': humidity,
                 })
@@ -220,8 +226,8 @@ def process_single_event(event_id):
                 event_results.append([
                     fix_encoding(stadium).replace(" ", "_"),
                     date,
-                    race_name.replace(" ", "_"),
                     event_name.replace(" ", "_"),
+                    race_name.replace(" ", "_"),
                     r.get("rank", ""),
                     competitor.get("number", ""),
                     full_name,
@@ -252,12 +258,20 @@ def main():
 
     print(f"Found {len(isu_ids)} events")
 
-    with open("datascraper/data/isu_results.csv", "w", newline='', encoding="utf-8") as result_file:
-        result_writer = csv.writer(result_file, delimiter=';')
-        result_writer.writerow(["Stadium","Date","Event","Race","Rnk", "Nr", "Name", "Country", "Pair", "Lane", "Time", "Behind","Gender","EstimatedTFM","TimeFromMopping"])
+    # Define output directory and ensure it exists
+    output_dir = "datascraper/data"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    results_path = os.path.join(output_dir, "isu_results.csv")
+    conditions_path = os.path.join(output_dir, "isu_conditions.csv")
 
-    condition_fieldnames = ['Stadium','Date','Event','MatchType','EventCountry','Distance','Occasion', 'Time', 'AirTemperature', 'IceTemperature', 'Humidity']
-    with open("datascraper/data/isu_conditions.csv", mode='w', newline='', encoding='utf-8') as file:
+    # Ensure UTF-8 encoding when writing CSV files
+    with open(results_path, "w", newline='', encoding="utf-8") as result_file:
+        result_writer = csv.writer(result_file, delimiter=';')
+        result_writer.writerow(["Stadium","Date","Event","Race","Rank", "Nr", "Name", "Country", "Pair", "Lane", "Time", "Behind","Gender"])
+
+    condition_fieldnames = ['Stadium', 'Location', 'Latitude', 'Longitude', 'Date','Event','Race','Country','Distance','Occasion', 'Time', 'TempIndoors', 'IceTemperature', 'Humidity', 'AirpressureSurface', 'AirpressureSealevel']
+    with open(conditions_path, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=condition_fieldnames, delimiter=';')
         writer.writeheader()
 
@@ -291,12 +305,14 @@ def main():
                     print(f"[ERROR] Error processing event: {e}")
 
         if batch_results:
-            with open("datascraper/data/isu_results.csv", "a", newline='', encoding="utf-8") as result_file:
+            print(f"Writing {len(batch_results)} results from batch {i//batch_size + 1}...")
+            with open(results_path, "a", newline='', encoding="utf-8") as result_file:
                 result_writer = csv.writer(result_file, delimiter=';')
                 result_writer.writerows(batch_results)
 
         if batch_conditions:
-            with open("datascraper/data/isu_conditions.csv", mode='a', newline='', encoding='utf-8') as file:
+            print(f"Writing {len(batch_conditions)} conditions from batch {i//batch_size + 1}...")
+            with open(conditions_path, mode='a', newline='', encoding='utf-8') as file:
                 writer = csv.DictWriter(file, fieldnames=condition_fieldnames, delimiter=';')
                 writer.writerows(batch_conditions)
 
