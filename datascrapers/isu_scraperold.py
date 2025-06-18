@@ -5,7 +5,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
 
-# Regex die veelvoorkomende mojibake detecteert (zoals "Ã¶", "Ã¤", etc.)
+# Regex die veelvoorkomende mojibake detecteert (zoals “Ã¶”, “Ã¤”, etc.)
 MOJIBAKE_PATTERN = re.compile(r"[Ã][^\s]{1,2}")
 
 def fix_encoding(text):
@@ -99,9 +99,6 @@ def process_single_event(event_id):
         print(f"[WARNING] No track data found for event {event_id}")
         return [], []
 
-    latitude = track_data.get("track", {}).get("latitude")
-    longitude = track_data.get("track", {}).get("longitude")
-    city = fix_encoding(track_data.get("track", {}).get("city", ""))
     stadium = fix_encoding(track_data.get("track", {}).get("name", ""))
     event_name = fix_encoding(track_data.get("name", ""))
 
@@ -182,9 +179,6 @@ def process_single_event(event_id):
 
                 event_conditions.append({
                     'Stadium': fix_encoding(stadium).replace(" ", "_"),
-                    'Location': city.replace(" ", "_") if city else '',
-                    'Latitude': latitude,
-                    'Longitude': longitude,
                     'Date': date,
                     'Event': race_name.replace(" ", "_"),
                     'MatchType': event_name.replace(" ", "_"),
@@ -266,7 +260,7 @@ def main():
         result_writer = csv.writer(result_file, delimiter=';')
         result_writer.writerow(["Stadium","Date","Event","Race","Rnk", "Nr", "Name", "Country", "Pair", "Lane", "Time", "Behind","Gender"])
 
-    condition_fieldnames = ['Stadium', 'Location', 'Latitude', 'Longitude', 'Date','Event','MatchType','EventCountry','Distance','Occasion', 'Time', 'AirTemperature', 'IceTemperature', 'Humidity']
+    condition_fieldnames = ['Stadium','Date','Event','MatchType','EventCountry','Distance','Occasion', 'Time', 'AirTemperature', 'IceTemperature', 'Humidity']
     with open("isu_conditions.csv", mode='w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=condition_fieldnames, delimiter=';')
         writer.writeheader()
