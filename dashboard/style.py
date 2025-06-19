@@ -83,4 +83,33 @@ dark_template = {
             'yaxis': {'gridcolor': '#2c5aa0', 'zerolinecolor': '#2c5aa0'}
         }
     }
+
+# Graph styling template
+graph_layout_style = {
+    'paper_bgcolor': '#1e3a5f',
+    'plot_bgcolor': '#0f2142',
+    'font': dict(color='white'),
+    'xaxis': dict(
+        gridcolor='#2c5aa0',
+        zerolinecolor='#2c5aa0',
+        title_font=dict(color='white')
+    ),
+    'yaxis': dict(
+        gridcolor='#2c5aa0',
+        zerolinecolor='#2c5aa0',
+        title_font=dict(color='white')
+    ),
+    'legend': dict(
+        font=dict(color='white'),
+        bgcolor='rgba(30, 58, 95, 0.8)'
+    ),
+    'title_font': dict(color='white')
+}
+
+# Marker styling
+marker_style = {
+    'size': 8,
+    'opacity': 0.7,
+    'line': dict(width=1, color='white')
+}
     
