@@ -143,18 +143,36 @@ app.layout = dbc.Container([
     # Header
     
     dbc.Row([
-        
-        dbc.Col([
-            html.Div([
-                html.H1("Speedskating Performance Analysis", 
-                        className="text-center mb-2",
-                        style=title_style),
-                html.P("Advanced Analytics Dashboard based on ISU Speedskating Data",
-                       className="text-center text-muted mb-4",
-                       style=subtitle_style)
-            ], style=header_div_style)
-        ], width=12)
-    ]),
+    dbc.Col(  # Left image
+         html.Img(
+            src='assets/nhlstenden.png',
+            style={"maxWidth": "100%", "height": "auto"}
+        ),
+        width=2,
+        style={"textAlign": "left"}
+    ),
+    dbc.Col(  # Header content
+        html.Div([
+            html.H1("Speedskating Performance Analysis", 
+                    className="text-center mb-2",
+                    style=title_style),
+            html.P("Advanced Analytics Dashboard based on ISU Speedskating Data",
+                   className="text-center text-muted mb-4",
+                   style=subtitle_style)
+        ], style=header_div_style),
+        width=8
+    ),
+    dbc.Col(  # Right image
+         html.Img(
+            src='assets/wetsus.png',
+            style={"maxWidth": "100%", "height": "auto"}
+        ),
+        width=2,
+        style={"textAlign": "right"}
+    ),
+    ],align="center",  # Vertically center all columns in the row
+    className="mb-4"),
+
 
     # Controls Section
     dbc.Row([
@@ -315,7 +333,17 @@ app.layout = dbc.Container([
                             clearable=False,
                             style=dropdown_style
                         ),
-                    ], width=4),
+                    ], width=3),
+                    dbc.Col([
+                        html.Label("Select Country:", style={'color': 'white'}),
+                        dcc.Dropdown(
+                            id='country-dropdown-additional',
+                            options=[{'label': c, 'value': c} for c in sorted(df_gekoppeld['Country_y'].unique())],
+                            multi=True,
+                            placeholder='All countries',
+                            style=dropdown_style
+                        ),
+                    ], width=3),
 
                     dbc.Col([
                         html.Label("Select Stadium:", style={'color': 'white'}),
@@ -327,11 +355,11 @@ app.layout = dbc.Container([
                             clearable=False,
                             style=dropdown_style
                         ),
-                    ], width=4),
+                    ], width=3),
 
                     dbc.Col([
                         html.Div(id='data-info', style=card_style)
-                    ], width=4)
+                    ], width=3)
                 ], style=card_style)
             ])
         ], style=card_style)
@@ -608,17 +636,53 @@ def update_all_figures(selected_gender, selected_distance, selected_years, selec
     else:
         return scatter_fig, stats_text, time_trend_fig, temp_dist_fig, stadium_fig, avg_temp_fig, None
 
-# Callback om grafiek te updaten
+# First callback - Update stadium dropdown options based on selected countries
+@app.callback(
+    Output('Stadium-dropdown', 'options'),
+    Output('Stadium-dropdown', 'value'),
+    Input('country-dropdown-additional', 'value'),
+    State('Stadium-dropdown', 'value')
+)
+def update_stadium_options(selected_countries, selected_stadiums):
+    if selected_countries:
+        # Filter stadiums based on selected countries
+        filtered_df = df_gekoppeld[df_gekoppeld['Country_y'].isin(selected_countries)]
+        stadium_options = [{'label': 'All Stadiums', 'value': 'All'}] + \
+                         [{'label': s, 'value': s} for s in sorted(filtered_df['Stadium'].dropna().unique())]
+        
+        # Keep only valid stadiums that exist in the filtered countries
+        if selected_stadiums and selected_stadiums != 'All':
+            if isinstance(selected_stadiums, list):
+                valid_stadiums = [s for s in selected_stadiums if s in filtered_df['Stadium'].unique()]
+                return stadium_options, valid_stadiums if valid_stadiums else 'All'
+            else:
+                if selected_stadiums in filtered_df['Stadium'].unique():
+                    return stadium_options, selected_stadiums
+                else:
+                    return stadium_options, 'All'
+        else:
+            return stadium_options, 'All'
+    else:
+        # Show all stadiums when no countries are selected
+        stadium_options = [{'label': 'All Stadiums', 'value': 'All'}] + \
+                         [{'label': s, 'value': s} for s in sorted(df_gekoppeld['Stadium'].dropna().unique())]
+        return stadium_options, selected_stadiums if selected_stadiums else 'All'
+
+# Second callback - Update graph based on distance and stadium selection
 @app.callback(
     [Output('performance-graph', 'figure'),
      Output('data-info', 'children')],
     [Input('distance-dropdown-additional', 'value'),
-     Input('Stadium-dropdown', 'value')]
+     Input('Stadium-dropdown', 'value'),
+     Input('country-dropdown-additional', 'value')]  # Added missing parameter
 )
-
-def update_graph(selected_distance, selected_stadium):
+def update_graph(selected_distance, selected_stadium, selected_countries):
     # Filter op afstand
     filtered = df_gekoppeld[df_gekoppeld['Distance'] == selected_distance]
+    
+    # Filter on selected countries if any are selected
+    if selected_countries:
+        filtered = filtered[filtered['Country_y'].isin(selected_countries)]
     
     # Als een specifiek stadion is gekozen, filter daar ook op
     if selected_stadium != 'All':
@@ -626,7 +690,8 @@ def update_graph(selected_distance, selected_stadium):
     
     # Info tekst
     stadium_info = selected_stadium if selected_stadium != 'All' else "all stadiums"
-    info_text = f"Count of datapoints for {selected_distance}m in {stadium_info}: {len(filtered)}"
+    country_info = f" in {', '.join(selected_countries)}" if selected_countries else ""
+    info_text = f"Count of datapoints for {selected_distance}m in {stadium_info}{country_info}: {len(filtered)}"
     
     # Geen data
     if len(filtered) == 0:
@@ -641,23 +706,23 @@ def update_graph(selected_distance, selected_stadium):
             paper_bgcolor='#1e3a5f',
             plot_bgcolor='#0f2142',
             font=dict(color='white'),
-            title=f'Predicted Skating Performance for {selected_distance} meter in {stadium_info}'
+            title=f'Predicted Skating Performance for {selected_distance} meter in {stadium_info}{country_info}'
         )
         return fig, info_text
-
+    
     # Hoofdplot: scatterplot van voorspelling versus echte tijd
     fig = px.scatter(
-    filtered,
-    x='Time_x',
-    y='schaatsprestatie',
-    labels={
-        'Time_x': 'Performance Time (seconds)',
-        'schaatsprestatie': 'Predicted Skating Performance (seconds)'
-    },
-    trendline="ols",
-    title=f'Predicted Skating Performance for {selected_distance} meter in {stadium_info}',
-    hover_data=['Name', 'Gender']  # Hier voeg je toe wat je wilt tonen bij hover
-   )
+        filtered,
+        x='Time_x',
+        y='schaatsprestatie',
+        labels={
+            'Time_x': 'Performance Time (seconds)',
+            'schaatsprestatie': 'Predicted Skating Performance (seconds)'
+        },
+        trendline="ols",
+        title=f'Predicted Skating Performance for {selected_distance} meter in {stadium_info}{country_info}',
+        hover_data=['Name', 'Gender']  # Hier voeg je toe wat je wilt tonen bij hover
+    )
 
     # Layout en stijl
     fig.update_layout(graph_layout_style)
