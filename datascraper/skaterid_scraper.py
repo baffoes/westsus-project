@@ -4,6 +4,7 @@ import re
 from difflib import SequenceMatcher
 from functools import lru_cache
 import time
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 from collections import defaultdict
@@ -165,11 +166,11 @@ def parse_and_enrich_csv_massive(input_file, output_file, max_workers=8):
                 results[request] = result
                 completed += 1
                 
-                # Progress update every 1000 completions
-                if completed % 1000 == 0:
+                # Progress update every 200 completions for better feedback
+                if completed % 200 == 0 or completed == len(unique_requests):
                     elapsed = time.time() - process_start
-                    rate = completed / elapsed
-                    eta = (len(unique_requests) - completed) / rate
+                    rate = completed / elapsed if elapsed > 0 else 0
+                    eta = (len(unique_requests) - completed) / rate if rate > 0 else 0
                     print(f"Processed {completed}/{len(unique_requests)} unique requests "
                           f"({rate:.1f}/s, ETA: {eta:.0f}s)")
                     
@@ -178,6 +179,40 @@ def parse_and_enrich_csv_massive(input_file, output_file, max_workers=8):
     
     print(f"API processing completed in {time.time() - process_start:.1f}s")
     
+    # --- Start Verrijkingsgraad Rapportage ---
+    total_unique = len(unique_requests)
+    matched_count = 0
+    unmatched_skaters = []
+
+    for request, skater_id in results.items():
+        if skater_id and skater_id != 'Error':
+            matched_count += 1
+        else:
+            unmatched_skaters.append(f"{request[0]} ({request[1]})")
+
+    enrichment_rate = (matched_count / total_unique) * 100 if total_unique > 0 else 0
+
+    print("\n--- Verrijkingsgraad Rapport ---")
+    print(f"Totaal unieke schaatsers verwerkt: {total_unique}")
+    print(f"Succesvol gekoppeld met SkaterID: {matched_count}")
+    print(f"Verrijkingsgraad: {enrichment_rate:.2f}%")
+    
+    # Diagnose: Log niet-gekoppelde schaatsers
+    if unmatched_skaters:
+        log_dir = "datascraper/logs"
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        log_file_path = os.path.join(log_dir, 'unmatched_skaters.log')
+        
+        print(f"Diagnose: {len(unmatched_skaters)} niet-gekoppelde schaatsers gelogd naar {log_file_path}")
+        
+        with open(log_file_path, 'w', encoding='utf-8') as f:
+            f.write("Schaatsers waarvoor geen ID kon worden gevonden:\n")
+            f.write("================================================\n")
+            for skater in sorted(unmatched_skaters):
+                f.write(f"{skater}\n")
+    print("---------------------------------\n")
+
     # Map results back to all rows
     write_start = time.time()
     skater_ids = []

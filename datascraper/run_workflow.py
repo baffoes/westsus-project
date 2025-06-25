@@ -75,16 +75,28 @@ def main():
     
     current_dir = os.path.dirname(os.path.abspath(__file__))
     
-    scripts = {
-        "Data scraping": "isu_scraper.py",
-        "Adding SkaterIDs": "skaterid_scraper.py",
-        "Adding seasonal bests": "seasonalbest_scraper.py",
-        "Adding weather data": "add_weather_to_conditions_with_location.py",
-        "Calculating EstimatedTFM": "calculate_estimated_tfm.py",
-        "Loading data into SQLite database": "load_to_database.py"
+    STEPS = {
+        # Step 1: Scrape ISU Results
+        "Scraping ISU Results": "isu_scraper.py",
+
+        # Step 2: Enrich with SkaterIDs
+        "Enriching with SkaterIDs": "skaterid_scraper.py",
+
+        # Step 3: Enrich with Seasonal Bests
+        "Enriching with Seasonal Bests": "seasonalbest_scraper.py",
+
+        # Step 4: Add Weather Data
+        "Adding Weather Data": "add_weather_to_conditions_with_location.py",
+
+        # Step 5: Calculate Estimated TFM (Time From Mopping)
+        # "Parsing PDF Schedules for Accurate TFM": "pdf_schedule_parser.py",
+        "Calculating Estimated TFM": "calculate_estimated_tfm.py",
+
+        # Step 6: Load to Database
+        "Loading to SQLite Database": "load_to_database.py"
     }
     
-    for description, script_name in scripts.items():
+    for description, script_name in STEPS.items():
         script_path = os.path.join(current_dir, script_name)
         run_command(script_path, description)
     

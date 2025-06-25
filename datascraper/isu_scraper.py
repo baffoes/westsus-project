@@ -228,6 +228,7 @@ def process_single_event(event_id):
                     date,
                     event_name.replace(" ", "_"),
                     race_name.replace(" ", "_"),
+                    distance,
                     r.get("rank", ""),
                     competitor.get("number", ""),
                     full_name,
@@ -268,7 +269,7 @@ def main():
     # Ensure UTF-8 encoding when writing CSV files
     with open(results_path, "w", newline='', encoding="utf-8") as result_file:
         result_writer = csv.writer(result_file, delimiter=';')
-        result_writer.writerow(["Stadium","Date","Event","Race","Rank", "Nr", "Name", "Country", "Pair", "Lane", "Time", "Behind","Gender"])
+        result_writer.writerow(["Stadium","Date","Event","Race","Distance","Rank", "Nr", "Name", "Country", "Pair", "Lane", "Time", "Behind","Gender"])
 
     condition_fieldnames = ['Stadium', 'Location', 'Latitude', 'Longitude', 'Date','Event','Race','Country','Distance','Occasion', 'Time', 'TempIndoors', 'IceTemperature', 'Humidity', 'AirpressureSurface', 'AirpressureSealevel']
     with open(conditions_path, mode='w', newline='', encoding='utf-8') as file:
