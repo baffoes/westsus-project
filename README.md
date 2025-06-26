@@ -1,4 +1,4 @@
-# West-Sussex Speedskating Data Project
+# Wetsus project
 
 ## Project Goal
 
