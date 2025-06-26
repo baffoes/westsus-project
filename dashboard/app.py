@@ -8,8 +8,8 @@ import numpy as np
 from style import *
 
 # Load data
-df_results = pd.read_csv("data/ResultsV2.csv", delimiter=";")
-df_conditions = pd.read_csv("data/ConditionsV2.csv", delimiter=";")
+df_results = pd.read_csv("dashboard/data/ResultsV2.csv", delimiter=";")
+df_conditions = pd.read_csv("dashboard/data/ConditionsV2.csv", delimiter=";")
 
 # Only keep 'start' occasion
 df_conditions = df_conditions[df_conditions["Occasion"] == "start"]
